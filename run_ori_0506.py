@@ -9,7 +9,7 @@ import os
 import json
 import time
 import math
-import ffmpeg
+# import ffmpeg
 import shutil
 import argparse
 # import threading
@@ -37,6 +37,19 @@ print(f'base_path -> {base_path}')
 #          video_path, '-loglevel', 'quiet'], stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
 #     duration = float(result.stdout)
 #     return duration
+#
+#
+# def get_video_information(video_path):
+#     """
+#     获取视频信息
+#
+#     :param video_path: 视频路径
+#     :return: 视频信息
+#     """
+#     # 获取视频属性
+#     probe = ffmpeg.probe(video_path)
+#     video_info = next((stream for stream in probe['streams'] if stream['codec_type'] == 'video'), None)
+#     return video_info
 #
 #
 # def video_split_moviepy(video_path, split_num, save_path):
@@ -118,19 +131,6 @@ print(f'base_path -> {base_path}')
 
 
 # ----------------------------用到的函数--------------------------------
-def get_video_information(video_path):
-    """
-    获取视频信息
-
-    :param video_path: 视频路径
-    :return: 视频信息
-    """
-    # 获取视频属性
-    probe = ffmpeg.probe(video_path)
-    video_info = next((stream for stream in probe['streams'] if stream['codec_type'] == 'video'), None)
-    return video_info
-
-
 def get_video_information_os(video_path):
     """
     获取视频信息
@@ -189,7 +189,9 @@ def video_split_ffmpeg(video_path, split_num, save_path):
     for i in range(split_num):
         start = round(i * split_time)
         print(f'{i}:start -> {start}')
-        end = min(math.ceil(duration), round((i + 1) * split_time))
+        end = round((i + 1) * split_time)
+        if i == split_num - 1:
+            end = math.ceil(duration)
         print(f'{i}:end -> {end}')
 
         # subprocess.run(['ffmpeg', '-i', video_path, '-ss', str(start), '-to', str(end), '-c:v', 'copy',
