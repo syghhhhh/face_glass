@@ -6,6 +6,7 @@
 
 import os
 # import cv2
+import json
 import time
 import math
 import ffmpeg
@@ -119,7 +120,7 @@ print(f'base_path -> {base_path}')
 # ----------------------------用到的函数--------------------------------
 def get_video_information(video_path):
     """
-    subprocess调用ffprobe获取视频信息
+    获取视频信息
 
     :param video_path: 视频路径
     :return: 视频信息
@@ -127,6 +128,22 @@ def get_video_information(video_path):
     # 获取视频属性
     probe = ffmpeg.probe(video_path)
     video_info = next((stream for stream in probe['streams'] if stream['codec_type'] == 'video'), None)
+    return video_info
+
+
+def get_video_information_os(video_path):
+    """
+    获取视频信息
+
+    :param video_path: 视频路径
+    :return: 视频信息
+    """
+    # 获取视频属性
+    cmd = f'ffprobe -v quiet -print_format json -show_format -show_streams {video_path}'
+    video_info = os.popen(cmd).read()
+
+    # 字符串转字典
+    video_info = json.loads(video_info)
     return video_info
 
 
@@ -147,14 +164,23 @@ def video_split_ffmpeg(video_path, split_num, save_path):
     # duration = get_video_duration_ffprobe(video_path)
     # print(f'duration -> {duration}')
 
+    # # 获取视频信息
+    # video_info = get_video_information(video_path)
+    # duration = float(video_info['duration'])  # 视频时长，单位为秒
+    # video_bitrate = video_info['bit_rate']  # 视频码率
+    # video_codec = video_info['codec_name']  # 视频编码格式
+    # print(f'duration -> {duration}')  # 70.32
+    # print(f'video_bitrate -> {video_bitrate}')  # '1982950'
+    # print(f'video_codec -> {video_codec}')  # 'h264'
+
     # 获取视频信息
-    video_info = get_video_information(video_path)
-    duration = float(video_info['duration'])  # 视频时长，单位为秒
-    video_bitrate = video_info['bit_rate']  # 视频码率
-    video_codec = video_info['codec_name']  # 视频编码格式
-    print(f'duration -> {duration}')
-    print(f'video_bitrate -> {video_bitrate}')
-    print(f'video_codec -> {video_codec}')
+    video_info = get_video_information_os(video_path)
+    duration = float(video_info['format']['duration'])  # 视频时长，单位为秒
+    video_bitrate = video_info['format']['bit_rate']  # 视频码率
+    video_codec = video_info['streams'][0]['codec_name']  # 视频编码格式
+    print(f'duration -> {duration}')  # 70.32
+    print(f'video_bitrate -> {video_bitrate}')  # '2057219'
+    print(f'video_codec -> {video_codec}')  # 'h264'
 
     # 切割时间，单位为秒
     split_time = duration / split_num
